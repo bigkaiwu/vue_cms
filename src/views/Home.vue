@@ -15,6 +15,7 @@
           active-text-color="#3d76f7"
           :collapse="isCollapse"
           :collapse-transition="false"
+          :default-active="activePath"
           unique-opened
           router
         >
@@ -28,6 +29,7 @@
               :index="'/' + menuclild.path"
               v-for="menuclild in menu.children"
               :key="menuclild.id"
+              @click="saveActiveStatus('/' + menuclild.path)"
             >
               <template slot="title">
                 <i class="el-icon-menu"></i>
@@ -56,11 +58,13 @@ export default {
         102: 'iconfont icon-danju',
         145: 'iconfont icon-baobiao'
       },
-      isCollapse: false
+      isCollapse: false,
+      activePath: ''
     }
   },
   created() {
     this.getMenuList()
+    this.activePath = window.sessionStorage.getItem('activePath')
   },
   methods: {
     logout() {
@@ -75,6 +79,10 @@ export default {
     },
     changeCollapse() {
       this.isCollapse = !this.isCollapse
+    },
+    saveActiveStatus(activePath) {
+      window.sessionStorage.setItem('activePath', activePath)
+      this.activePath = activePath
     }
   }
 }
