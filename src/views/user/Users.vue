@@ -10,12 +10,12 @@
     <el-card>
       <el-row :gutter="20">
         <el-col :span="8">
-          <el-input placeholder="请输入内容" v-model="queryInfo.query">
+          <el-input placeholder="请输入内容" v-model="queryInfo.query" @clear="getUserList" clearable>
             <el-button slot="append" icon="el-icon-search" @click="getUserList"></el-button>
           </el-input>
         </el-col>
         <el-col :span="6">
-          <el-button type="primary">添加用户</el-button>
+          <el-button type="primary" @click="dialogVisible=true">添加用户</el-button>
         </el-col>
       </el-row>
       <el-table :data="userList" border stripe>
@@ -55,6 +55,27 @@
         :total="total"
       ></el-pagination>
     </el-card>
+
+    <el-dialog title="添加用户" :visible.sync="dialogVisible" width="40%" @close="addUserClosed">
+      <el-form :model="addUser" ref="addUserRef" :rules="addUserRules" label-width="100px">
+        <el-form-item label="用户名" prop="username">
+          <el-input v-model="addUser.username"></el-input>
+        </el-form-item>
+        <el-form-item label="密码" prop="password">
+          <el-input v-model="addUser.password"></el-input>
+        </el-form-item>
+        <el-form-item label="邮箱" prop="email">
+          <el-input v-model="addUser.email"></el-input>
+        </el-form-item>
+        <el-form-item label="手机" prop="mobile">
+          <el-input v-model="addUser.mobile"></el-input>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="addNewUser">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -68,7 +89,40 @@ export default {
         pagesize: 2
       },
       userList: [],
-      total: 0
+      total: 0,
+      dialogVisible: false,
+      addUser: {
+        username: '',
+        password: '',
+        email: '',
+        mobile: ''
+      },
+      addUserRules: {
+        username: [
+          { required: true, message: '请输入用户名', trigger: 'blur' },
+          { min: 3, max: 10, message: '长度在 3 到 10 个字符', trigger: 'blur' }
+        ],
+        password: [
+          { required: true, message: '请输入密码', trigger: 'blur' },
+          { min: 6, max: 15, message: '长度在 6 到 15 个字符', trigger: 'blur' }
+        ],
+        email: [
+          { required: true, message: '请输入邮箱地址', trigger: 'blur' },
+          {
+            type: 'email',
+            message: '请输入正确的邮箱地址',
+            trigger: ['blur', 'change']
+          }
+        ],
+        mobile: [
+          { required: true, message: '请输入手机号码', trigger: 'blur' },
+          {
+            pattern: /^0{0,1}(13[0-9]|15[7-9]|153|156|18[7-9])[0-9]{8}$/,
+            message: '手机号格式不对',
+            trigger: 'blur'
+          }
+        ]
+      }
     }
   },
   created() {
@@ -101,6 +155,22 @@ export default {
         return this.$message.error('更新用户状态失败!')
       }
       this.$message.success(res.meta.msg)
+    },
+    addUserClosed() {
+      this.$refs.addUserRef.resetFields()
+    },
+    addNewUser() {
+      this.$refs.addUserRef.validate(async valid => {
+        if (!valid) return
+        const { data: res } = await this.$http.post('users', this.addUser)
+        if (res.meta.status !== 201) {
+          this.$message.error(res.meta.msg)
+          return
+        }
+        this.$message.success(res.meta.msg)
+        this.dialogVisible = false
+        this.getUserList()
+      })
     }
   }
 }
