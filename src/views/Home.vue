@@ -9,8 +9,15 @@
       <el-button type="info" plain @click="logout">退出登录</el-button>
     </el-header>
     <el-container>
-      <el-aside width="200px">
-        <el-menu class="el-menu-vertical-demo" active-text-color="#3d76f7">
+      <el-aside :width="isCollapse ? '65px' : '200px'">
+        <el-menu
+          class="el-menu-vertical-demo"
+          active-text-color="#3d76f7"
+          :collapse="isCollapse"
+          :collapse-transition="false"
+          unique-opened
+        >
+          <div class="controller" @click="changeCollapse">|||</div>
           <el-submenu :index="menu.id+''" v-for="menu in menuList" :key="menu.id">
             <template slot="title">
               <i :class="iconList[menu.id]"></i>
@@ -45,7 +52,8 @@ export default {
         101: 'iconfont icon-shangpin',
         102: 'iconfont icon-danju',
         145: 'iconfont icon-baobiao'
-      }
+      },
+      isCollapse: false
     }
   },
   created() {
@@ -62,6 +70,9 @@ export default {
       console.log(res)
       if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
       this.menuList = res.data
+    },
+    changeCollapse() {
+      this.isCollapse = !this.isCollapse
     }
   }
 }
@@ -91,13 +102,24 @@ export default {
   .el-container {
     .el-aside {
       background-color: #fff;
+      .el-menu {
+        border-right: none;
+        .controller {
+          background-color: #ddd;
+          color: #fff;
+          text-align: center;
+          height: 30px;
+          line-height: 30px;
+          letter-spacing: 5px;
+        }
+      }
     }
     .el-main {
       background-color: #f5f6fa;
     }
   }
 }
-.iconfont{
+.iconfont {
   padding-right: 10px;
 }
 </style>
