@@ -16,6 +16,7 @@
           :collapse="isCollapse"
           :collapse-transition="false"
           unique-opened
+          router
         >
           <div class="controller" @click="changeCollapse">|||</div>
           <el-submenu :index="menu.id+''" v-for="menu in menuList" :key="menu.id">
@@ -24,7 +25,7 @@
               <span>{{ menu.authName }}</span>
             </template>
             <el-menu-item
-              :index="menuclild.id+''"
+              :index="'/' + menuclild.path"
               v-for="menuclild in menu.children"
               :key="menuclild.id"
             >
@@ -36,7 +37,9 @@
           </el-submenu>
         </el-menu>
       </el-aside>
-      <el-main>Main</el-main>
+      <el-main>
+        <router-view></router-view>
+      </el-main>
     </el-container>
   </el-container>
 </template>
@@ -67,7 +70,6 @@ export default {
     },
     async getMenuList() {
       const { data: res } = await this.$http.get('menus')
-      console.log(res)
       if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
       this.menuList = res.data
     },
