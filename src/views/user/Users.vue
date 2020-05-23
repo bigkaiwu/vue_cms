@@ -37,7 +37,12 @@
               size="mini"
               @click="showEditDialog(scope.row.id)"
             ></el-button>
-            <el-button type="danger" icon="el-icon-delete" size="mini"></el-button>
+            <el-button
+              type="danger"
+              icon="el-icon-delete"
+              size="mini"
+              @click="deleteUser(scope.row.id)"
+            ></el-button>
             <el-tooltip
               class="item"
               effect="dark"
@@ -249,6 +254,28 @@ export default {
         this.editVisible = false
         this.getUserList()
       })
+    },
+    deleteUser(id) {
+      this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+        .then(async () => {
+          const { data: res } = await this.$http.delete('users/' + id)
+          console.log(res)
+          if (res.meta.status !== 200) {
+            return this.$message.error(res.meta.msg)
+          }
+          this.$message.success('删除成功!')
+          this.getUserList()
+        })
+        .catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          })
+        })
     }
   }
 }
