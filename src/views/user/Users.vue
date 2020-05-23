@@ -30,8 +30,13 @@
           </template>
         </el-table-column>
         <el-table-column label="操作" width="180px">
-          <template>
-            <el-button type="primary" icon="el-icon-edit" size="mini"></el-button>
+          <template slot-scope="scope">
+            <el-button
+              type="primary"
+              icon="el-icon-edit"
+              size="mini"
+              @click="showEditDialog(scope.row.id)"
+            ></el-button>
             <el-button type="danger" icon="el-icon-delete" size="mini"></el-button>
             <el-tooltip
               class="item"
@@ -76,6 +81,30 @@
         <el-button type="primary" @click="addNewUser">确 定</el-button>
       </span>
     </el-dialog>
+
+    <el-dialog title="修改用户信息" :visible.sync="editVisible" width="40%" @close="editUserClosed">
+      <el-form
+        :model="editUser"
+        :rules="editUserRules"
+        ref="editUserRef"
+        label-width="100px"
+        class="demo-ruleForm"
+      >
+        <el-form-item label="用户名">
+          <el-input v-model="editUser.username" :disabled="true"></el-input>
+        </el-form-item>
+        <el-form-item label="邮箱" prop="email">
+          <el-input v-model="editUser.email"></el-input>
+        </el-form-item>
+        <el-form-item label="手机" prop="mobile">
+          <el-input v-model="editUser.mobile"></el-input>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="editVisible = false">取 消</el-button>
+        <el-button type="primary" @click="editUserInfo">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -91,6 +120,8 @@ export default {
       userList: [],
       total: 0,
       dialogVisible: false,
+      editVisible: false,
+      editUser: {},
       addUser: {
         username: '',
         password: '',
@@ -106,6 +137,24 @@ export default {
           { required: true, message: '请输入密码', trigger: 'blur' },
           { min: 6, max: 15, message: '长度在 6 到 15 个字符', trigger: 'blur' }
         ],
+        email: [
+          { required: true, message: '请输入邮箱地址', trigger: 'blur' },
+          {
+            type: 'email',
+            message: '请输入正确的邮箱地址',
+            trigger: ['blur', 'change']
+          }
+        ],
+        mobile: [
+          { required: true, message: '请输入手机号码', trigger: 'blur' },
+          {
+            pattern: /^0{0,1}(13[0-9]|15[7-9]|153|156|18[7-9])[0-9]{8}$/,
+            message: '手机号格式不对',
+            trigger: 'blur'
+          }
+        ]
+      },
+      editUserRules: {
         email: [
           { required: true, message: '请输入邮箱地址', trigger: 'blur' },
           {
@@ -169,6 +218,35 @@ export default {
         }
         this.$message.success(res.meta.msg)
         this.dialogVisible = false
+        this.getUserList()
+      })
+    },
+    async showEditDialog(id) {
+      const { data: res } = await this.$http.get('users/' + id)
+      if (res.meta.status !== 200) {
+        return this.$message.error(res.meta.msg)
+      }
+      this.editUser = res.data
+      this.editVisible = true
+    },
+    editUserClosed() {
+      this.$refs.editUserRef.resetFields()
+    },
+    editUserInfo() {
+      this.$refs.editUserRef.validate(async valid => {
+        if (!valid) return
+        const { data: res } = await this.$http.put(
+          'users/' + this.editUser.id,
+          {
+            email: this.editUser.email,
+            mobile: this.editUser.mobile
+          }
+        )
+        if (res.meta.status !== 200) {
+          return this.$message.error(res.meta.msg)
+        }
+        this.$message.success(res.meta.msg)
+        this.editVisible = false
         this.getUserList()
       })
     }
