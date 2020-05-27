@@ -9,7 +9,7 @@
     <el-card>
       <el-row>
         <el-col>
-          <el-button type="primary">添加角色</el-button>
+          <el-button type="primary" @click="addRoleVisible=true">添加角色</el-button>
         </el-col>
       </el-row>
 
@@ -52,6 +52,21 @@
         <el-button type="primary" @click="editRoleInfo">确 定</el-button>
       </span>
     </el-dialog>
+
+    <el-dialog title="添加角色" :visible.sync="addRoleVisible" width="40%">
+      <el-form ref="addRoleRef" :rules="addRoleRules" :model="addRole" label-width="80px">
+        <el-form-item label="角色名" prop="roleName">
+          <el-input v-model="addRole.roleName"></el-input>
+        </el-form-item>
+        <el-form-item label="角色描述">
+          <el-input v-model="addRole.roleDesc"></el-input>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="addRoleVisible = false">取 消</el-button>
+        <el-button type="primary" @click="addRoleInfo">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -63,6 +78,13 @@ export default {
       editRole: {},
       editRoleVisible: false,
       editRoleRules: {
+        roleName: [
+          { required: true, message: '角色名称不能为空', trigger: 'blur' }
+        ]
+      },
+      addRole: {},
+      addRoleVisible: false,
+      addRoleRules: {
         roleName: [
           { required: true, message: '角色名称不能为空', trigger: 'blur' }
         ]
@@ -123,6 +145,19 @@ export default {
             message: '已取消删除'
           })
         })
+    },
+    addRoleInfo() {
+      this.$refs.addRoleRef.validate(async valid => {
+        if (!valid) return
+        const { data: res } = await this.$http.post('roles', this.addRole)
+        if (res.meta.status !== 201) {
+          this.$message.error(res.meta.msg)
+          return
+        }
+        this.$message.success(res.meta.msg)
+        this.addRoleVisible = false
+        this.getRolesList()
+      })
     }
   }
 }
